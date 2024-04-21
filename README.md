@@ -1,6 +1,6 @@
 # Jovial Nushell Theme
 
-An shell theme [Jovial](https://github.com/zthxxx/jovial) implemented in [Nushell](https://www.nushell.sh/)
+A shell theme [Jovial](https://github.com/zthxxx/jovial) implemented in [Nushell](https://www.nushell.sh/)
 
 ![ ](./images/preview.png)
 
