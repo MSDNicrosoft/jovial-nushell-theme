@@ -16,37 +16,45 @@ def get-user-color [] {
     return $user_color
 }
 
+def format-duration [duration: int] {
+    let seconds = $duration mod 60
+    let minutes = $duration // 60 mod 60
+    let hours = $duration // 3600
+
+    mut result = ""
+    if ($hours > 0) { $result += $"($hours)h " }
+    if ($minutes > 0) { $result += $"($minutes)m " }
+    if ($seconds > 0) { $result += $"($seconds)s" }
+    return $result
+}
+
 export def prompt-command [] {
     let term_columns = (term size).columns
     let user_color = get-user-color
     let corner = $"(ansi '#d0d0d0')╭──"
 
-    let host  = (uname | get nodename)
+    let host = uname | get nodename
     let user = whoami
 
     let user_directory_color = { fg: "#ffff87", attr: b }
-    let directory = $"(pwd | str replace ($nu.home-path) "~")"
+    let directory = pwd | str replace ($nu.home-path) "~"
 
-    let git_line = (
-        if (".git" | path exists) {
-            try {
-                let git_branch = (do -i { git branch --show-current } | complete | $in.stdout | str trim)
-                let git_dirty = (do -i { git status --porcelain=v1 } | complete | $in.stdout | str length) > 0
+    let git_line = if (".git" | path exists) {
+        try {
+            let git_branch = (do -i { git branch --show-current } | complete | $in.stdout | str trim)
+            let git_dirty = (do -i { git status --porcelain=v1 } | complete | $in.stdout | str length) > 0
 
-                $"($git_branch)(if $git_dirty { "*" } else { "" })"
-            } catch { "" }
-        } else { "" }
-    )
+            $"($git_branch)(if $git_dirty { "*" } else { "" })"
+        } catch { "" }
+    } else { "" }
 
     let vcs_color = { fg: yellow }
     # This is a bit unnecessary, but if I decide to support other VCSs in the future
     # it should be relatively easy to tack on
-    let vcs_line = (if $git_line != "" { $git_line } else { "" })
-    let vcs_line = (if $vcs_line != "" {
+    let vcs_line = if ($git_line != "") { $git_line } else { "" }
+    let vcs_line = if ($vcs_line != "") {
         $" ($prep._on) (ansi $vcs_color)<($vcs_line)> (ansi reset)"
-    } else {
-        ""
-    })
+    } else { "" }
 
     let host = $"(ansi '#d0d0d0')[(ansi reset)(ansi '#afffaf')($host)(ansi '#d0d0d0')](ansi reset)"
     let user = $" ($prep._as) (ansi $user_color)($user)(ansi reset)"
@@ -66,17 +74,27 @@ export def prompt-command [] {
 }
 
 export def prompt-command-right [] {
+    let duration = try {
+        let delta = (date now) - ($env._jovial_pre_time | into datetime) | format duration sec | (parse "{second} sec").second.0 | into int
+        let humanized = format-duration $delta
+        if (($humanized | str length) == 0) {
+            ""
+        } else {
+            $"(ansi '#ffd787')~($humanized) "
+        }
+    } catch { "" }
+
     let current_time = (date now | format date '%H:%M:%S')
+
     return (if $env.LAST_EXIT_CODE == 0 {
-        $"(ansi '#d0d0d0')($current_time)"
+        $"($duration)(ansi '#d0d0d0')($current_time)"
     } else {
-        $"(ansi '#878787')exit:(ansi { fg: red, attr: b })($env.LAST_EXIT_CODE)(ansi reset) (ansi '#d0d0d0')($current_time)"
+        $"(ansi '#878787')exit:(ansi { fg: red, attr: b })($env.LAST_EXIT_CODE) ($duration)(ansi '#d0d0d0')($current_time)"
     })
 }
 
 export def prompt-indicator [] {
     let corner = $"(ansi '#d0d0d0')╰──➤"
-
     return $"($corner)(ansi reset) "
 }
 
