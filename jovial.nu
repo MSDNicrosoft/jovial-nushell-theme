@@ -8,12 +8,10 @@ const prep = {
 }
 
 def get-user-color [] {
-    let user_color = {
-        attr: b,
-        fg: (if (is-admin) { "#ff5f5f" } else { "#dadada" }),
+    return {
+        attr: b
+        fg: (if (is-admin) { "#ff5f5f" } else { "#dadada" })
     }
-
-    return $user_color
 }
 
 def format-duration [duration: int] {
@@ -21,7 +19,7 @@ def format-duration [duration: int] {
     let minutes = $duration // 60 mod 60
     let hours = $duration // 3600
 
-    mut result = ""
+    mut result = "~"
     if ($hours > 0) { $result += $"($hours)h " }
     if ($minutes > 0) { $result += $"($minutes)m " }
     if ($seconds > 0) { $result += $"($seconds)s" }
@@ -41,8 +39,8 @@ export def prompt-command [] {
 
     let git_line = if (".git" | path exists) {
         try {
-            let git_branch = (do -i { git branch --show-current } | complete | $in.stdout | str trim)
-            let git_dirty = (do -i { git status --porcelain=v1 } | complete | $in.stdout | str length) > 0
+            let git_branch = (do -i { git branch --show-current } | complete).stdout | str trim
+            let git_dirty = ((do -i { git status --porcelain=v1 } | complete).stdout | str length) > 0
 
             $"($git_branch)(if $git_dirty { "*" } else { "" })"
         } catch { "" }
@@ -56,7 +54,7 @@ export def prompt-command [] {
         $" ($prep._on) (ansi $vcs_color)<($vcs_line)> (ansi reset)"
     } else { "" }
 
-    let host = $"(ansi '#d0d0d0')[(ansi reset)(ansi '#afffaf')($host)(ansi '#d0d0d0')](ansi reset)"
+    let host = $"(ansi '#d0d0d0')[(ansi '#afffaf')($host)(ansi '#d0d0d0')](ansi reset)"
     let user = $" ($prep._as) (ansi $user_color)($user)(ansi reset)"
     let directory = $" ($prep._in) (ansi $user_directory_color)($directory)(ansi reset)"
 
@@ -76,12 +74,7 @@ export def prompt-command [] {
 export def prompt-command-right [] {
     let duration = try {
         let delta = (date now) - ($env._jovial_pre_time | into datetime) | format duration sec | (parse "{second} sec").second.0 | into int
-        let humanized = format-duration $delta
-        if (($humanized | str length) == 0) {
-            ""
-        } else {
-            $"(ansi '#ffd787')~($humanized) "
-        }
+        $"(ansi '#ffd787')(format-duration $delta) "
     } catch { "" }
 
     let current_time = (date now | format date '%H:%M:%S')
