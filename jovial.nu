@@ -35,7 +35,7 @@ export def prompt-command [] {
     let user = whoami
 
     let user_directory_color = { fg: "#ffff87", attr: b }
-    let directory = pwd | str replace ($nu.home-path) "~"
+    let directory = pwd | str replace $nu.home-path "~"
 
     let git_line = if (".git" | path exists) {
         try {
@@ -77,7 +77,7 @@ export def prompt-command-right [] {
         $"(ansi '#ffd787')(format-duration $delta) "
     } catch { "" }
 
-    let current_time = (date now | format date '%H:%M:%S')
+    let current_time = date now | format date "%H:%M:%S"
 
     return (if $env.LAST_EXIT_CODE == 0 {
         $"($duration)(ansi '#d0d0d0')($current_time)"
@@ -87,8 +87,7 @@ export def prompt-command-right [] {
 }
 
 export def prompt-indicator [] {
-    let corner = $"(ansi '#d0d0d0')╰──➤"
-    return $"($corner)(ansi reset) "
+    return $"(ansi '#d0d0d0')╰──➤(ansi reset) "
 }
 
 export def multiline-indicator [] { return "" }
