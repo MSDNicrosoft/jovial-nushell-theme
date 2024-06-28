@@ -19,11 +19,12 @@ def format-duration [duration: int] {
     let minutes = $duration // 60 mod 60
     let hours = $duration // 3600
 
-    mut result = "~"
+    mut result = ""
     if ($hours > 0) { $result += $"($hours)h " }
     if ($minutes > 0) { $result += $"($minutes)m " }
     if ($seconds > 0) { $result += $"($seconds)s" }
-    return $result
+    
+    return (if ($result != "") { $"~($result)" } else { "" })
 }
 
 export def prompt-command [] {
@@ -72,17 +73,16 @@ export def prompt-command [] {
 }
 
 export def prompt-command-right [] {
-    let duration = try {
-        $"(ansi '#ffd787')(format-duration (($env.CMD_DURATION_MS | into int) // 1000)) "
-    } catch { "" }
+    let duration = $"(ansi '#ffd787')(format-duration (($env.CMD_DURATION_MS | into int) // 1000)) "
 
     let current_time = date now | format date "%H:%M:%S"
 
-    return (if $env.LAST_EXIT_CODE == 0 {
-        $"($duration)(ansi '#d0d0d0')($current_time)"
-    } else {
-        $"(ansi '#878787')exit:(ansi { fg: red, attr: b })($env.LAST_EXIT_CODE) ($duration)(ansi '#d0d0d0')($current_time)"
-    })
+    let exit_code = if ($env.LAST_EXIT_CODE != 0) {
+        $"(ansi '#878787')exit:(ansi { fg: red, attr: b })($env.LAST_EXIT_CODE) "
+    } else { "" }
+
+
+    return $"($exit_code)($duration)(ansi '#d0d0d0')($current_time)"
 }
 
 export def prompt-indicator [] {
