@@ -73,8 +73,7 @@ export def prompt-command [] {
 
 export def prompt-command-right [] {
     let duration = try {
-        let delta = (date now) - ($env._jovial_pre_time | into datetime) | format duration sec | (parse "{second} sec").second.0 | into int
-        $"(ansi '#ffd787')(format-duration $delta) "
+        $"(ansi '#ffd787')(format-duration (($env.CMD_DURATION_MS | into int) // 1000)) "
     } catch { "" }
 
     let current_time = date now | format date "%H:%M:%S"
